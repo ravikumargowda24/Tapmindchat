@@ -6,7 +6,6 @@ import {
     HOST,
     MESSAGE_TYPES,
 } from "@/lib/constants";
-import { DELETE_MESSAGE_ROUTE } from "@/lib/constants";
 import { useAppStore } from "@/store";
 import moment from "moment";
 import { FiMoreVertical } from "react-icons/fi";
@@ -165,7 +164,6 @@ const MessageContainer = () => {
         userInfo,
         setDownloadProgress,
         setIsDownloading,
-        deleteMessage
     } = useAppStore();
 
     const messageEndRef = useRef(null);
@@ -334,29 +332,29 @@ const MessageContainer = () => {
     // };
 
 
-    const handleDelete = async (message) => {
-        try {
-            const response = await apiClient.delete(DELETE_MESSAGE_ROUTE, {
-                data: { messageId: message._id },
-                withCredentials: true,
-            });
+    // const handleDelete = async (message) => {
+    //     try {
+    //         const response = await apiClient.delete(DELETE_MESSAGE_ROUTE, {
+    //             data: { messageId: message._id },
+    //             withCredentials: true,
+    //         });
 
-            if (response.status === 200) {
-                // emit with optional userId for server permission checks
-                socket.emit("delete-message", {
-                    messageId: message._id,
-                    channelId: selectedChatType === "channel" ? selectedChatData._id : null,
-                    userId: userInfo?.id,
-                });
-                deleteMessage(response.messageId)
+    //         if (response.status === 200) {
+    //             // emit with optional userId for server permission checks
+    //             socket.emit("delete-message", {
+    //                 messageId: message._id,
+    //                 channelId: selectedChatType === "channel" ? selectedChatData._id : null,
+    //                 userId: userInfo?.id,
+    //             });
+    //             deleteMessage(response.messageId)
 
-            }
+    //         }
 
 
-        } catch (error) {
-            console.log("Delete failed:", error);
-        }
-    }
+    //     } catch (error) {
+    //         console.log("Delete failed:", error);
+    //     }
+    // }
     const handleForward = (msg) => {
         setMessageToForward(msg);
         setForwardModalOpen(true);
@@ -429,7 +427,7 @@ const MessageContainer = () => {
                     <MessageMenu
                         message={message}
                         userInfo={userInfo}
-                        onDelete={handleDelete}
+                        onDelete={() => { }}
                         onPin={handlePin}
                         onForward={handleForward}
                     />
@@ -505,7 +503,7 @@ const MessageContainer = () => {
                     <MessageMenu
                         message={message}
                         userInfo={userInfo}
-                        onDelete={handleDelete}
+                        onDelete={() => { }}
                         onPin={handlePin}
                         onForward={handleForward}
                     />

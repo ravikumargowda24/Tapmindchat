@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "../../../../../../components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import apiClient from "@/lib/api-client";
 import {
   FETCH_ALL_MESSAGES_ROUTE,
@@ -116,25 +116,28 @@ const MessageContainer = () => {
   const renderPersonalMessages = (message) => {
     return (
       <div
-        className={`message  ${message.sender === selectedChatData._id ? "text-left" : "text-right"
-          }`}
+        className={`message  ${
+          message.sender === selectedChatData._id ? "text-left" : "text-right"
+        }`}
       >
         {message.messageType === MESSAGE_TYPES.TEXT && (
           <div
-            className={`${message.sender !== selectedChatData._id
+            className={`${
+              message.sender !== selectedChatData._id
                 ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
                 : "bg-[#2a2b33]/50 text-white/80 border-[#ffffff]/20"
-              } border inline-block p-4 rounded my-1 max-w-[50%] break-words`}
+            } border inline-block p-4 rounded my-1 max-w-[50%] break-words`}
           >
             {message.content}
           </div>
         )}
         {message.messageType === MESSAGE_TYPES.FILE && (
           <div
-            className={`${message.sender !== selectedChatData._id
+            className={`${
+              message.sender !== selectedChatData._id
                 ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
                 : "bg-[#2a2b33]/50 text-white/80 border-[#ffffff]/20"
-              } border inline-block p-4 rounded my-1 lg:max-w-[50%] break-words`}
+            } border inline-block p-4 rounded my-1 lg:max-w-[50%] break-words`}
           >
             {checkIfImage(message.fileUrl) ? (
               <div
@@ -178,25 +181,28 @@ const MessageContainer = () => {
   const renderChannelMessages = (message) => {
     return (
       <div
-        className={`mt-5  ${message.sender._id !== userInfo.id ? "text-left" : "text-right"
-          }`}
+        className={`mt-5  ${
+          message.sender._id !== userInfo.id ? "text-left" : "text-right"
+        }`}
       >
         {message.messageType === MESSAGE_TYPES.TEXT && (
           <div
-            className={`${message.sender._id === userInfo.id
+            className={`${
+              message.sender._id === userInfo.id
                 ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
                 : "bg-[#2a2b33]/50 text-white/80 border-[#ffffff]/20"
-              } border inline-block p-4 rounded my-1 max-w-[50%] break-words ml-9`}
+            } border inline-block p-4 rounded my-1 max-w-[50%] break-words ml-9`}
           >
             {message.content}
           </div>
         )}
         {message.messageType === MESSAGE_TYPES.FILE && (
           <div
-            className={`${message.sender._id === userInfo.id
+            className={`${
+              message.sender._id === userInfo.id
                 ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
                 : "bg-[#2a2b33]/50 text-white/80 border-[#ffffff]/20"
-              } border inline-block p-4 rounded my-1 max-w-[50%] break-words ml-9`}
+            } border inline-block p-4 rounded my-1 max-w-[50%] break-words ml-9`}
           >
             {checkIfImage(message.fileUrl) ? (
               <div

@@ -11,88 +11,8 @@ const setupSocket = (server) => {
     },
   });
 
-  const userSocketMap = new Map(); // ✅ Move before usage
+  const userSocketMap = new Map();
 
-  // const deleteMessageSocket = async (data) => {
-  //   const { messageId, channelId } = data;
-
-  //   if (channelId) {
-  //     const channel = await Channel.findById(channelId).populate("members");
-  //     if (channel) {
-  //       // Broadcast to channel room
-  //       io.to(`channel_${channelId}`).emit("message-deleted", { messageId, channelId });
-  //     }
-  //   } else {
-  //     const message = await Message.findById(messageId);
-  //     if (message) {
-  //       // Broadcast to sender and recipient rooms
-  //       io.to(`user_${message.sender}`).emit("message-deleted", { messageId });
-  //       io.to(`user_${message.recipient}`).emit("message-deleted", { messageId });
-  //     }
-  //   }
-  // };
-
-  // Add these console.logs to your deleteMessageSocket function:
-
-  // const deleteMessageSocket = async (data) => {
-  //   const { messageId, channelId, userId } = data;
-
-  //   console.log("Delete request received:", { messageId, channelId, userId }); // Debug
-
-  //   try {
-  //     const message = await Message.findById(messageId);
-  //     if (!message) {
-  //       console.log("Message not found:", messageId); // Debug
-  //       return;
-  //     }
-
-  //     console.log("Found message:", message); // Debug
-
-  //     // Permission check — sender or channel admin
-  //     if (message.sender.toString() !== userId) {
-  //       if (message.recipient) {
-  //         console.log("Permission denied: not sender of personal message"); // Debug
-  //         return;
-  //       }
-  //       const channel = await Channel.findOne({ messages: messageId });
-  //       if (!channel || channel.admin.toString() !== userId) {
-  //         console.log("Permission denied: not channel admin"); // Debug
-  //         return;
-  //       }
-  //     }
-
-  //     // Delete from DB
-  //     const deletedMessage = await Message.findByIdAndDelete(messageId);
-  //     console.log("Message deleted from DB:", deletedMessage ? "success" : "failed"); // Debug
-
-  //     // Remove from channel if applicable
-  //     if (!message.recipient) {
-  //       const channelUpdate = await Channel.findOneAndUpdate(
-  //         { messages: messageId },
-  //         { $pull: { messages: messageId } }
-  //       );
-  //       console.log("Channel updated:", channelUpdate ? "success" : "failed"); // Debug
-  //     }
-
-  //     // Emit deletion event to all relevant clients
-  //     const emitData = { messageId };
-  //     if (channelId) {
-  //       console.log(`Emitting to channel_${channelId}:`, emitData); // Debug
-  //       io.to(`channel_${channelId}`).emit("message-deleted", emitData);
-  //     } else {
-  //       console.log(`Emitting to users:`, {
-  //         sender: message.sender,
-  //         recipient: message.recipient
-  //       }); // Debug
-  //       io.to(`user_${message.recipient}`).emit("message-deleted", emitData);
-  //       io.to(`user_${message.sender}`).emit("message-deleted", emitData);
-
-
-  //     }
-  //   } catch (err) {
-  //     console.error("Delete message error:", err);
-  //   }
-  // };
   const addChannelNotify = async (channel) => {
     if (channel && channel.members) {
       channel.members.forEach((member) => {
@@ -108,7 +28,10 @@ const setupSocket = (server) => {
     const recipientSocketId = userSocketMap.get(message.recipient);
     const senderSocketId = userSocketMap.get(message.sender);
 
+    // Create the message
     const createdMessage = await Message.create(message);
+
+    // Find the created message by its ID and populate sender and recipient details
     const messageData = await Message.findById(createdMessage._id)
       .populate("sender", "id email firstName lastName image color")
       .populate("recipient", "id email firstName lastName image color")
@@ -117,6 +40,8 @@ const setupSocket = (server) => {
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("receiveMessage", messageData);
     }
+
+    // Optionally, send the message back to the sender (e.g., for message confirmation)
     if (senderSocketId) {
       io.to(senderSocketId).emit("receiveMessage", messageData);
     }

@@ -46,12 +46,6 @@ export const createChatSlice = (set, get) => ({
         });
     },
 
-    deleteMessage: (messageId) =>
-        set((state) => ({
-            selectedChatMessages: state.selectedChatMessages.filter(
-                (msg) => msg._id !== messageId
-            ),
-        })),
     addChannel: (channel) => {
         const channels = get().channels;
         set({ channels: [channel, ...channels] });
@@ -88,6 +82,7 @@ export const createChatSlice = (set, get) => ({
         if (index !== -1 && index !== undefined) {
             channels.splice(index, 1);
             channels.unshift(data);
+            set({ channels: [...channels] });
         }
     },
 });

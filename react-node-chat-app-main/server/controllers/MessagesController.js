@@ -119,44 +119,44 @@ export const forwardMessage = async (req, res, next) => {
   }
 };
 
-export const deleteMessage = async (req, res, next) => {
-  try {
-    const { messageId } = req.body;
-    const userId = req.userId;
+// export const deleteMessage = async (req, res, next) => {
+//   try {
+//     const { messageId } = req.body;
+//     const userId = req.userId;
 
-    const message = await Message.findById(messageId);
-    if (!message) {
-      return res.status(404).send("Message not found.");
-    }
+//     const message = await Message.findById(messageId);
+//     if (!message) {
+//       return res.status(404).send("Message not found.");
+//     }
 
-    // Check if user is sender or admin (for channels)
-    if (message.sender.toString() !== userId) {
-      // For channels, check if user is admin
-      if (message.recipient) {
-        // Personal message, only sender can delete
-        return res.status(403).send("Unauthorized.");
-      } else {
-        // Channel message, check if user is channel admin
-        const channel = await Channel.findOne({ messages: messageId });
-        if (!channel || channel.admin.toString() !== userId) {
-          return res.status(403).send("Unauthorized.");
-        }
-      }
-    }
+//     // Check if user is sender or admin (for channels)
+//     if (message.sender.toString() !== userId) {
+//       // For channels, check if user is admin
+//       if (message.recipient) {
+//         // Personal message, only sender can delete
+//         return res.status(403).send("Unauthorized.");
+//       } else {
+//         // Channel message, check if user is channel admin
+//         const channel = await Channel.findOne({ messages: messageId });
+//         if (!channel || channel.admin.toString() !== userId) {
+//           return res.status(403).send("Unauthorized.");
+//         }
+//       }
+//     }
 
-    await Message.findByIdAndDelete(messageId);
+//     await Message.findByIdAndDelete(messageId);
 
-    // Remove from channel if it's a channel message
-    if (!message.recipient) {
-      await Channel.findOneAndUpdate(
-        { messages: messageId },
-        { $pull: { messages: messageId } }
-      );
-    }
+//     // Remove from channel if it's a channel message
+//     if (!message.recipient) {
+//       await Channel.findOneAndUpdate(
+//         { messages: messageId },
+//         { $pull: { messages: messageId } }
+//       );
+//     }
 
-    return res.status(200).json({ messageId });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).send("Internal Server Error");
-  }
-};
+//     return res.status(200).json({ messageId });
+//   } catch (err) {
+//     console.log(err);
+//     return res.status(500).send("Internal Server Error");
+//   }
+// };
