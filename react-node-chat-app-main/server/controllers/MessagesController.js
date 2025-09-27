@@ -119,6 +119,50 @@ export const forwardMessage = async (req, res, next) => {
   }
 };
 
+export const deleteMessage = async (req, res, next) => {
+  try {
+    const { messageId } = req.body;
+    const userId = req.userId;
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).send("Message not found.");
+    }
+
+    // Sender can delete DM; channel admin can delete channel message
+    if (message.sender.toString() !== userId) {
+      if (message.recipient) {
+        return res.status(403).send("Unauthorized.");
+      } else {
+        const channel = await Channel.findOne({ messages: messageId });
+        if (!channel || channel.admin.toString() !== userId) {
+          return res.status(403).send("Unauthorized.");
+        }
+      }
+    }
+
+    await Message.findByIdAndDelete(messageId);
+
+    let channelId = null;
+    let recipientId = message.recipient ? message.recipient.toString() : null;
+    const senderId = message.sender.toString();
+
+    if (!message.recipient) {
+      const channel = await Channel.findOneAndUpdate(
+        { messages: messageId },
+        { $pull: { messages: messageId } },
+        { new: true }
+      );
+      channelId = channel?._id ? channel._id.toString() : null;
+    }
+
+    return res.status(200).json({ messageId, senderId, recipientId, channelId });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
 // export const deleteMessage = async (req, res, next) => {
 //   try {
 //     const { messageId } = req.body;

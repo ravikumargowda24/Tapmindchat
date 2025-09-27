@@ -15,7 +15,7 @@ const Chat = () => {
         fileUploadProgress,
         isDownloading,
         downloadProgress,
-        setSelectedChatMessages, // Add this
+        removeMessage, // Add this
     } = useAppStore();
     const navigate = useNavigate();
     const socket = useSocket(); // Add this
@@ -30,9 +30,7 @@ const Chat = () => {
     useEffect(() => {
         if (socket) {
             const handleMessageDeleted = (data) => {
-                setSelectedChatMessages((prev) =>
-                    prev.filter((msg) => msg._id !== data.messageId)
-                );
+                removeMessage(data.messageId);
             };
 
             socket.on("message-deleted", handleMessageDeleted);
@@ -41,7 +39,7 @@ const Chat = () => {
                 socket.off("message-deleted", handleMessageDeleted);
             };
         }
-    }, [socket, setSelectedChatMessages]);
+    }, [socket, removeMessage]);
 
     return (
         <div className="flex h-[100vh] text-white overflow-hidden">

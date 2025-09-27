@@ -31,6 +31,25 @@ const setupSocket = (server) => {
   //     }
   //   }
   // };
+  const deleteMessageSocket = async (data) => {
+    const { messageId, senderId, recipientId, channelId } = data;
+    const emitData = { messageId };
+    if (channelId) {
+      const channel = await Channel.findById(channelId).populate("members");
+      if (!channel) return;
+      channel.members.forEach((member) => {
+        const socketId = userSocketMap.get(member._id.toString());
+        if (socketId) io.to(socketId).emit("message-deleted", emitData);
+      });
+      const adminSocketId = userSocketMap.get(channel.admin._id.toString());
+      if (adminSocketId) io.to(adminSocketId).emit("message-deleted", emitData);
+    } else {
+      const recipientSocketId = recipientId ? userSocketMap.get(recipientId) : null;
+      const senderSocketId = senderId ? userSocketMap.get(senderId) : null;
+      if (recipientSocketId) io.to(recipientSocketId).emit("message-deleted", emitData);
+      if (senderSocketId) io.to(senderSocketId).emit("message-deleted", emitData);
+    }
+  };
 
   // Add these console.logs to your deleteMessageSocket function:
 
@@ -187,6 +206,7 @@ const setupSocket = (server) => {
     socket.on("sendMessage", sendMessage);
 
     socket.on("send-channel-message", sendChannelMessage);
+    socket.on("delete-message", deleteMessageSocket);
 
     socket.on("disconnect", () => disconnect(socket));
   });

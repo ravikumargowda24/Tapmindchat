@@ -5,6 +5,7 @@ import {
     GET_CHANNEL_MESSAGES,
     HOST,
     MESSAGE_TYPES,
+    DELETE_MESSAGE_ROUTE,
 } from "@/lib/constants";
 import { useAppStore } from "@/store";
 import moment from "moment";
@@ -164,6 +165,7 @@ const MessageContainer = () => {
         userInfo,
         setDownloadProgress,
         setIsDownloading,
+        removeMessage,
     } = useAppStore();
 
     const messageEndRef = useRef(null);
@@ -292,44 +294,26 @@ const MessageContainer = () => {
     };
 
 
-    // const handleDelete = async (message) => {
-    //     try {
-    //         const response = await apiClient.delete(DELETE_MESSAGE_ROUTE, {
-    //             data: { messageId: message._id },
-    //             withCredentials: true,
-    //         });
-    //         if (response.status === 200) {
-    //             socket.emit("delete-message", {
-    //                 messageId: message._id,
-    //                 channelId: selectedChatType === "channel" ? selectedChatData._id : null,
-    //             });
-    //             if (selectedChatType === "contact") {
-    //                 const res = await apiClient.post(
-    //                     FETCH_ALL_MESSAGES_ROUTE,
-    //                     { id: selectedChatData._id },
-    //                     { withCredentials: true }
-    //                 );
-    //                 if (res.data.messages && Array.isArray(res.data.messages)) {
-    //                     setSelectedChatMessages(res.data.messages);
-    //                 } else {
-    //                     setSelectedChatMessages([]);
-    //                 }
-    //             } else if (selectedChatType === "channel") {
-    //                 const res = await apiClient.get(
-    //                     `${GET_CHANNEL_MESSAGES}/${selectedChatData._id}`,
-    //                     { withCredentials: true }
-    //                 );
-    //                 if (res.data.messages && Array.isArray(res.data.messages)) {
-    //                     setSelectedChatMessages(res.data.messages);
-    //                 } else {
-    //                     setSelectedChatMessages([]);
-    //                 }
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.log("Delete failed:", error);
-    //     }
-    // };
+    const handleDelete = async (message) => {
+        try {
+            const response = await apiClient.delete(DELETE_MESSAGE_ROUTE, {
+                data: { messageId: message._id },
+                withCredentials: true,
+            });
+            if (response.status === 200) {
+                const { messageId, senderId, recipientId, channelId } = response.data;
+                socket.emit("delete-message", {
+                    messageId,
+                    senderId,
+                    recipientId,
+                    channelId: selectedChatType === "channel" ? (channelId || selectedChatData._id) : null,
+                });
+                removeMessage(messageId);
+            }
+        } catch (error) {
+            console.log("Delete failed:", error);
+        }
+    };
 
 
     // const handleDelete = async (message) => {
@@ -379,6 +363,12 @@ const MessageContainer = () => {
                                 : "bg-[#8417ff]/10 text-[#8417ff] rounded-2xl rounded-tr-sm border border-[#8417ff]/30"
                             }`}
                     >
+                        {/* Sender name for DM messages */}
+                        {isReceiver && (
+                            <div className="text-xs font-semibold text-gray-600 mb-1">
+                                {selectedChatData.firstName}    
+                            </div>
+                        )}
                         {message.messageType === MESSAGE_TYPES.TEXT && (
                             <span>
                                 {message.content}
@@ -427,7 +417,7 @@ const MessageContainer = () => {
                     <MessageMenu
                         message={message}
                         userInfo={userInfo}
-                        onDelete={() => { }}
+                        onDelete={() => { handleDelete(message) }}
                         onPin={handlePin}
                         onForward={handleForward}
                     />
@@ -455,6 +445,10 @@ const MessageContainer = () => {
                                 : "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm border border-gray-200"
                             }`}
                     >
+                        {/* Sender name for channel messages */}
+                        <div className={`text-xs font-semibold mb-1 ${isSender ? 'text-[#8417ff]/80' : 'text-gray-600'}`}>
+                            {isSender ? 'You' : `${message.sender.firstName}`}
+                        </div>
                         {message.messageType === MESSAGE_TYPES.TEXT && (
                             <span>
                                 {message.content}
@@ -503,7 +497,7 @@ const MessageContainer = () => {
                     <MessageMenu
                         message={message}
                         userInfo={userInfo}
-                        onDelete={() => { }}
+                        onDelete={() => { handleDelete(message) }}
                         onPin={handlePin}
                         onForward={handleForward}
                     />

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMessages, uploadFile, forwardMessage } from "../controllers/MessagesController.js";
+import { getMessages, uploadFile, forwardMessage, deleteMessage } from "../controllers/MessagesController.js";
 import { verifyToken } from "../middlewares/AuthMiddleware.js";
 import multer from "multer";
 const messagesRoutes = Router();
@@ -14,6 +14,5 @@ messagesRoutes.post(
 
 messagesRoutes.post("/forward-message", verifyToken, forwardMessage);
 
-// ...
-// messagesRoutes.delete("/delete-message", verifyToken, deleteMessage);
+messagesRoutes.delete("/delete-message", verifyToken, deleteMessage);
 export default messagesRoutes;
