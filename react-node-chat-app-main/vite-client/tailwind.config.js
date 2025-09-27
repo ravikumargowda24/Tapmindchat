@@ -1,4 +1,4 @@
-import {heroui} from "@heroui/theme"
+import { heroui } from "@heroui/theme"
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -10,7 +10,11 @@ export default {
     "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Poppins'],
+      },
+    },
   },
   darkMode: "class",
   plugins: [heroui()],

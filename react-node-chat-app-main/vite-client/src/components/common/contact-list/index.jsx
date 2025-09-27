@@ -3,6 +3,7 @@ import { getColor } from "@/lib/utils";
 import { useAppStore } from "@/store";
 import { Avatar } from "@/components/ui/avatar";
 
+
 const ContactList = ({ contacts, isChannel = false }) => {
     const {
         selectedChatData,
@@ -19,19 +20,34 @@ const ContactList = ({ contacts, isChannel = false }) => {
             setSelectedChatMessages([]);
         }
     };
+    const darkColors = [
+        // "#1E293B", // slate
+        // "#0F172A", // dark navy
+        // "#3B0764", // deep purple
+        // "#450A0A", // deep red
+        // "#14532D", // forest green
+        // "#064E3B", // teal
+        // "#1E3A8A", // royal blue
+        "#581C87", // violet
+    ];
+
+    function getRandomDarkColor() {
+        const index = Math.floor(Math.random() * darkColors.length);
+        return darkColors[index];
+    }
     console.log(selectedChatData, "selectedChatData")
     return (
         <div className="mt-5">
             {contacts.map((contact) => (
                 <div
                     key={contact._id}
-                    className={`pl-2 py-2 transition-all duration-300 cursor-pointer shadow-lg rounded-xl ${selectedChatData && selectedChatData._id === contact._id
+                    className={`p-2 py-2 transition-all duration-300 cursor-pointer shadow-lg rounded-xl h-15 my-3 ${selectedChatData && selectedChatData._id === contact._id
                         ? "bg-[#d9c3f1] text-black "
                         : "hover:bg-gray-100 text-gray-700"
                         }`}
                     onClick={() => handleClick(contact)}
                 >
-                    <div className="flex gap-5 items-center justify-start">
+                    <div className="flex gap-5 items-start justify-start">
                         {!isChannel && (
                             <Avatar className="h-10 w-10">
                                 {contact.image ? (
@@ -54,15 +70,29 @@ const ContactList = ({ contacts, isChannel = false }) => {
                             </Avatar>
                         )}
                         {isChannel && (
-                            <div className="bg-gray-200 text-gray-700 h-10 w-10 flex items-center justify-center rounded-full">
-                                #
+                            <div
+                                style={{ backgroundColor: getRandomDarkColor() }}
+                                className="text-white h-10 w-10 flex items-center justify-center rounded-full"
+                            >
+                                G
                             </div>
                         )}
                         {isChannel ? (
-                            <span>{contact.name}</span>
+                            <div className="flex flex-col">
+                                <span className="font-medium">{contact.name}</span>
+                                <span className="text-xs text-gray-500 truncate w-40">
+                                    {contact.lastMessage ? contact.lastMessage : "No messages yet"}
+                                </span>
+                            </div>
                         ) : (
-                            <span>{`${contact.firstName} ${contact.lastName}`}</span>
+                            <div className="flex flex-col">
+                                <span className="font-medium">{`${contact.firstName}`}</span>
+                                <span className="text-xs text-gray-500 truncate w-40">
+                                    {contact.lastMessage ? contact.lastMessage : "No messages yet"}
+                                </span>
+                            </div>
                         )}
+
                     </div>
                 </div>
             ))}

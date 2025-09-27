@@ -3,6 +3,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { useAppStore } from "@/store";
 import { HOST } from "@/lib/constants";
 import { getColor } from "@/lib/utils";
+import { FiMoreVertical } from "react-icons/fi";
 import moment from "moment";
 
 const ChatHeader = () => {
@@ -20,7 +21,21 @@ const ChatHeader = () => {
             return `Last seen: ${lastSeen.fromNow()}`;
         }
     };
+    const darkColors = [
+        // "#1E293B", // slate
+        // "#0F172A", // dark navy
+        // "#3B0764", // deep purple
+        // "#450A0A", // deep red
+        // "#14532D", // forest green
+        // "#064E3B", // teal
+        // "#1E3A8A", // royal blue
+        "#581C87", // violet
+    ];
 
+    function getRandomDarkColor() {
+        const index = Math.floor(Math.random() * darkColors.length);
+        return darkColors[index];
+    }
     return (
         <div className="h-[10vh] border-b border-gray-200 bg-white flex items-center justify-between px-6 shadow-sm">
             <div className="flex gap-4 items-center">
@@ -47,8 +62,11 @@ const ChatHeader = () => {
                                 )}
                             </Avatar>
                         ) : (
-                            <div className="bg-gray-200 py-3 px-5 flex items-center justify-center rounded-full text-gray-700 font-semibold">
-                                #
+                            <div
+                                style={{ backgroundColor: getRandomDarkColor() }}
+                                className="text-white h-10 w-10 flex items-center justify-center rounded-full"
+                            >
+                                G
                             </div>
                         )}
                     </div>
@@ -70,6 +88,13 @@ const ChatHeader = () => {
                 </div>
             </div>
             <div className="flex items-center gap-4">
+                <button
+                    className="text-gray-500 focus:outline-none transition-all duration-200"
+
+                >
+                    < FiMoreVertical className="text-3xl cursor-pointer" />
+                </button>
+
                 <button
                     className="text-gray-500 hover:text-red-500 focus:outline-none transition-all duration-200"
                     onClick={closeChat}
