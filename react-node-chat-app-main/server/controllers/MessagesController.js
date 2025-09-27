@@ -163,6 +163,56 @@ export const deleteMessage = async (req, res, next) => {
   }
 };
 
+export const editMessage = async (req, res, next) => {
+  try {
+    const { messageId, content } = req.body;
+    const userId = req.userId;
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).send("Message not found.");
+    }
+
+    // Only sender can edit their own messages
+    if (message.sender.toString() !== userId) {
+      return res.status(403).send("Unauthorized.");
+    }
+
+    // Only text messages can be edited
+    if (message.messageType !== "text") {
+      return res.status(400).send("Only text messages can be edited.");
+    }
+
+    const updatedMessage = await Message.findByIdAndUpdate(
+      messageId,
+      { content, edited: true, editedAt: new Date() },
+      { new: true }
+    ).populate("sender", "id email firstName lastName image color")
+     .populate("recipient", "id email firstName lastName image color")
+     .exec();
+
+    let channelId = null;
+    let recipientId = message.recipient ? message.recipient.toString() : null;
+    const senderId = message.sender.toString();
+
+    if (!message.recipient) {
+      const channel = await Channel.findOne({ messages: messageId });
+      channelId = channel?._id ? channel._id.toString() : null;
+    }
+
+    return res.status(200).json({ 
+      messageId, 
+      senderId, 
+      recipientId, 
+      channelId, 
+      updatedMessage 
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
 // export const deleteMessage = async (req, res, next) => {
 //   try {
 //     const { messageId } = req.body;

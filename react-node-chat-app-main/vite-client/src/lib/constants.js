@@ -24,6 +24,7 @@ export const SEARCH_CONTACTS_ROUTES = `${CONTACTS_ROTUES}/search`;
 export const GET_CONTACTS_WITH_MESSAGES_ROUTE = `${CONTACTS_ROTUES}/get-contacts-for-list`;
 export const GET_ALL_CONTACTS = `${CONTACTS_ROTUES}/all-contacts`;
 export const DELETE_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/delete-message`;
+export const EDIT_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/edit-message`;
 export const FORWARD_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/forward-message`;
 
 export const MESSAGE_TYPES = {

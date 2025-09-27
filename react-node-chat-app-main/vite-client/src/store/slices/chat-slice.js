@@ -51,6 +51,14 @@ export const createChatSlice = (set, get) => ({
             selectedChatMessages: selectedChatMessages.filter((msg) => msg._id !== messageId),
         });
     },
+    updateMessage: (messageId, updatedMessage) => {
+        const selectedChatMessages = get().selectedChatMessages;
+        set({
+            selectedChatMessages: selectedChatMessages.map((msg) =>
+                msg._id === messageId ? { ...msg, ...updatedMessage } : msg
+            ),
+        });
+    },
 
     addChannel: (channel) => {
         const channels = get().channels;

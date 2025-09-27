@@ -16,6 +16,7 @@ const Chat = () => {
         isDownloading,
         downloadProgress,
         removeMessage, // Add this
+        updateMessage, // Add this
     } = useAppStore();
     const navigate = useNavigate();
     const socket = useSocket(); // Add this
@@ -33,13 +34,19 @@ const Chat = () => {
                 removeMessage(data.messageId);
             };
 
+            const handleMessageEdited = (data) => {
+                updateMessage(data.messageId, data.updatedMessage);
+            };
+
             socket.on("message-deleted", handleMessageDeleted);
+            socket.on("message-edited", handleMessageEdited);
 
             return () => {
                 socket.off("message-deleted", handleMessageDeleted);
+                socket.off("message-edited", handleMessageEdited);
             };
         }
-    }, [socket, removeMessage]);
+    }, [socket, removeMessage, updateMessage]);
 
     return (
         <div className="flex h-[100vh] text-white overflow-hidden">

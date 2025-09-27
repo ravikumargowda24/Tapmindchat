@@ -6,6 +6,7 @@ import {
     HOST,
     MESSAGE_TYPES,
     DELETE_MESSAGE_ROUTE,
+    EDIT_MESSAGE_ROUTE,
 } from "@/lib/constants";
 import { Alert } from "@heroui/react";
 
@@ -41,7 +42,7 @@ import {
 import { Trash2, Copy, Forward } from "lucide-react";
 import ForwardModal from "./forward-modal";
 
-const MessageMenu = ({ message, userInfo, chatType, onDelete, onForward, onCopy }) => {
+const MessageMenu = ({ message, userInfo, chatType, onDelete, onForward, onCopy, onEdit }) => {
     const isMine =
         chatType === "contact"
             ? message.sender === userInfo.id
@@ -86,6 +87,7 @@ const MessageMenu = ({ message, userInfo, chatType, onDelete, onForward, onCopy 
                     <DropdownItem
                         key="edit"
                         startContent={<SquarePen size={16} className="text-violet-500" />}
+                        onClick={() => onEdit(message)}
                     >
                         Edit
                     </DropdownItem>
@@ -163,6 +165,11 @@ const MessageContainer = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState(null);
 
+    // 🔴 Edit modal state
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [messageToEdit, setMessageToEdit] = useState(null);
+    const [editContent, setEditContent] = useState("");
+
     const {
         selectedChatData,
         setSelectedChatMessages,
@@ -172,6 +179,7 @@ const MessageContainer = () => {
         setDownloadProgress,
         setIsDownloading,
         removeMessage,
+        updateMessage,
     } = useAppStore();
 
     const messageEndRef = useRef(null);
@@ -325,6 +333,55 @@ const MessageContainer = () => {
             });
     };
 
+    // 🔴 Edit message functions
+    const handleEdit = (msg) => {
+        if (msg.messageType !== MESSAGE_TYPES.TEXT) {
+            setAlertMessage("Only text messages can be edited");
+            setShowAlert(true);
+            setTimeout(() => setShowAlert(false), 3000);
+            return;
+        }
+        setMessageToEdit(msg);
+        setEditContent(msg.content);
+        setEditModalOpen(true);
+    };
+
+    const performEdit = async () => {
+        if (!messageToEdit || !editContent.trim()) return;
+
+        try {
+            const response = await apiClient.put(EDIT_MESSAGE_ROUTE, {
+                messageId: messageToEdit._id,
+                content: editContent.trim(),
+            }, { withCredentials: true });
+
+            if (response.status === 200) {
+                setAlertMessage("Message updated successfully");
+                setShowAlert(true);
+                setTimeout(() => setShowAlert(false), 3000);
+
+                const { messageId, senderId, recipientId, channelId, updatedMessage } = response.data;
+                socket.emit("edit-message", {
+                    messageId,
+                    senderId,
+                    recipientId,
+                    channelId: selectedChatType === "channel" ? (channelId || selectedChatData._id) : null,
+                    updatedMessage,
+                });
+                updateMessage(messageId, updatedMessage);
+            }
+        } catch (error) {
+            console.log("Edit failed:", error);
+            setAlertMessage("Edit failed");
+            setShowAlert(true);
+            setTimeout(() => setShowAlert(false), 3000);
+        } finally {
+            setEditModalOpen(false);
+            setMessageToEdit(null);
+            setEditContent("");
+        }
+    };
+
 
 
     const renderPersonalMessages = (message, index) => {
@@ -346,7 +403,7 @@ const MessageContainer = () => {
                         }`}
                 >
                     {isReceiver && (
-                        <div className="text-xs font-semibold text-gray-600 mb-1">
+                        <div className="text-xs font-semibold text-red-600 mb-1">
                             {selectedChatData.firstName}
                         </div>
                     )}
@@ -355,6 +412,9 @@ const MessageContainer = () => {
                             {message.content}
                             {message.forwarded && (
                                 <span className="text-xs text-blue-400 ml-1">(forwarded)</span>
+                            )}
+                            {message.edited && (
+                                <span className="text-xs text-gray-400 ml-1">(edited)</span>
                             )}
                         </span>
                     )}
@@ -404,6 +464,7 @@ const MessageContainer = () => {
                     onCopy={handleCopy}
                     onDelete={confirmDelete}
                     onForward={handleForward}
+                    onEdit={handleEdit}
                 />
             </motion.div>
         );
@@ -422,14 +483,14 @@ const MessageContainer = () => {
             >
                 <div className="relative flex items-start">
                     <div
-                        className={`relative max-w-[65%] px-4 py-2 text-sm shadow-sm
+                        className={`relative max-w-[65%] min-w[150px] px-4 py-2 text-sm shadow-sm
               ${isSender
                                 ? "bg-[#8417ff]/10 text-[#8417ff] rounded-2xl rounded-tr-sm border border-[#8417ff]/30"
                                 : "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm border border-gray-200"
                             }`}
                     >
                         <div
-                            className={`text-xs font-semibold mb-1 ${isSender ? "text-[#8417ff]/80" : "text-gray-600"
+                            className={`text-xs font-semibold mb-1 ${isSender ? "text-[#8417ff]/80" : "text-red-600"
                                 }`}
                         >
                             {isSender ? "You" : `${message.sender.firstName}`}
@@ -439,6 +500,9 @@ const MessageContainer = () => {
                                 {message.content}
                                 {message.forwarded && (
                                     <span className="text-xs text-blue-400 ml-1">(forwarded)</span>
+                                )}
+                                {message.edited && (
+                                    <span className="text-xs text-gray-400 ml-1">(edited)</span>
                                 )}
                             </span>
                         )}
@@ -484,9 +548,11 @@ const MessageContainer = () => {
                     <MessageMenu
                         message={message}
                         userInfo={userInfo}
+                        chatType={selectedChatType}
                         onDelete={confirmDelete}
                         onForward={handleForward}
                         onCopy={handleCopy}
+                        onEdit={handleEdit}
                     />
                 </div>
             </motion.div>
@@ -595,6 +661,38 @@ const MessageContainer = () => {
                                 </Button>
                                 <Button color="danger" onPress={performDelete}>
                                     Delete
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+
+            {/* 🔴 Edit Message Modal */}
+            <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)}>
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader>Edit Message</ModalHeader>
+                            <ModalBody>
+                                <textarea
+                                    value={editContent}
+                                    onChange={(e) => setEditContent(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                                    rows={4}
+                                    placeholder="Enter your message..."
+                                />
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="default" variant="light" onPress={onClose}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    onPress={performEdit}
+                                    isDisabled={!editContent.trim()}
+                                >
+                                    Update
                                 </Button>
                             </ModalFooter>
                         </>
