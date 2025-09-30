@@ -2,6 +2,8 @@ import { HOST } from "@/lib/constants";
 import { getColor } from "@/lib/utils";
 import { useAppStore } from "@/store";
 import { Avatar } from "@/components/ui/avatar";
+import { FiMoreVertical } from "react-icons/fi";
+
 
 
 const ContactList = ({ contacts, isChannel = false }) => {
@@ -38,64 +40,71 @@ const ContactList = ({ contacts, isChannel = false }) => {
     console.log(selectedChatData, "selectedChatData")
     return (
         <div className="mt-5">
-            {contacts.map((contact) => (
-                <div
-                    key={contact._id}
-                    className={`p-2 py-2 transition-all duration-300 cursor-pointer shadow-lg rounded-xl h-15 my-3 ${selectedChatData && selectedChatData._id === contact._id
-                        ? "bg-[#d9c3f1] text-black "
-                        : "hover:bg-gray-100 text-gray-700"
-                        }`}
-                    onClick={() => handleClick(contact)}
-                >
-                    <div className="flex gap-5 items-start justify-start">
-                        {!isChannel && (
-                            <Avatar className="h-10 w-10">
-                                {contact.image ? (
-                                    <img
-                                        src={`${HOST}/${contact.image}`}
-                                        alt="profile"
-                                        className="rounded-full object-cover h-full w-full"
-                                    />
-                                ) : (
+            {contacts.length > 0 ? (<>
+                {
+                    contacts.map((contact) => (
+                        <div
+                            key={contact._id}
+                            className={`p-2 py-2 transition-all border border-violet-500 flex w-full duration-300 cursor-pointer shadow-lg rounded-xl h-18 my-3 ${selectedChatData && selectedChatData._id === contact._id
+                                ? "bg-[#d9c3f1] text-black "
+                                : "hover:bg-gray-100 text-gray-700"
+                                }`}
+                            onClick={() => handleClick(contact)}
+                        >
+                            <div className="flex gap-3 justify-between">
+                                {!isChannel && (
+                                    <Avatar className="h-10 w-10">
+                                        {contact.image ? (
+                                            <img
+                                                src={`${HOST}/${contact.image}`}
+                                                alt="profile"
+                                                className="rounded-full object-cover h-full w-full"
+                                            />
+                                        ) : (
+                                            <div
+                                                className={`uppercase ${selectedChatData &&
+                                                    selectedChatData._id === contact._id
+                                                    ? "bg-[#ffffff22] border border-white/50 text-white"
+                                                    : getColor(contact.color)
+                                                    } h-10 w-10 flex items-center justify-center rounded-full`}
+                                            >
+                                                {contact.firstName?.[0]}
+                                            </div>
+                                        )}
+                                    </Avatar>
+                                )}
+                                {isChannel && (
                                     <div
-                                        className={`uppercase ${selectedChatData &&
-                                            selectedChatData._id === contact._id
-                                            ? "bg-[#ffffff22] border border-white/50 text-white"
-                                            : getColor(contact.color)
-                                            } h-10 w-10 flex items-center justify-center rounded-full`}
+                                        style={{ backgroundColor: getRandomDarkColor() }}
+                                        className="text-white h-10 w-10 flex items-center justify-center rounded-full"
                                     >
-                                        {contact.firstName?.[0]}
+                                        G
                                     </div>
                                 )}
-                            </Avatar>
-                        )}
-                        {isChannel && (
-                            <div
-                                style={{ backgroundColor: getRandomDarkColor() }}
-                                className="text-white h-10 w-10 flex items-center justify-center rounded-full"
-                            >
-                                G
-                            </div>
-                        )}
-                        {isChannel ? (
-                            <div className="flex flex-col">
-                                <span className="font-medium">{contact.name}</span>
-                                <span className="text-xs text-gray-500 truncate w-40">
-                                    {contact.lastMessage ? contact.lastMessage : "No messages yet"}
-                                </span>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col">
-                                <span className="font-medium">{`${contact.firstName}`}</span>
-                                <span className="text-xs text-gray-500 truncate w-40">
-                                    {contact.lastMessage ? contact.lastMessage : "No messages yet"}
-                                </span>
-                            </div>
-                        )}
+                                {isChannel ? (
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">{contact.name}</span>
+                                        <span className="text-xs text-gray-500 truncate w-40">
+                                            {contact.lastMessage ? contact.lastMessage : "No messages yet"}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">{`${contact.firstName}`}</span>
+                                        <span className="text-xs text-gray-500 truncate w-40">
+                                            {contact.lastMessage ? contact.lastMessage : "No messages yet"}
+                                        </span>
+                                    </div>
+                                )}
+                                {/* <div className="cursor-pointer flex items-center"><FiMoreVertical /></div> */}
 
-                    </div>
-                </div>
-            ))}
+                            </div>
+                        </div>
+                    ))
+                }
+            </>) : <div className="text-center text-gray-500 text-sm py-4">
+                No Results
+            </div>}
         </div>
     );
 };

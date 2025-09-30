@@ -2,16 +2,24 @@ import mongoose from "mongoose";
 import User from "../model/UserModel.js";
 import Message from "../model/MessagesModel.js";
 
+/**
+ * API to get all users except the current user, formatted as contacts.
+ * Used for populating dropdowns or lists where users need to select other users,
+ * such as forwarding messages or creating direct messages.
+ */
 export const getAllContacts = async (request, response, next) => {
   try {
     const users = await User.find(
       { _id: { $ne: request.userId } },
-      "firstName lastName _id"
+      "firstName lastName _id image color"
     );
 
     const contacts = users.map((user) => ({
-      label: `${user.firstName} ${user.lastName}`,
-      value: user._id,
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      image: user.image,
+      color: user.color,
     }));
 
     return response.status(200).json({ contacts });
@@ -21,6 +29,11 @@ export const getAllContacts = async (request, response, next) => {
   }
 };
 
+/**
+ * API to search for users by firstName, lastName, or email.
+ * Used to find specific contacts when the user types in a search field,
+ * allowing them to locate and select users for messaging or other interactions.
+ */
 export const searchContacts = async (request, response, next) => {
   try {
     const { searchTerm } = request.body;
@@ -51,6 +64,11 @@ export const searchContacts = async (request, response, next) => {
   }
 };
 
+/**
+ * API to get the list of contacts that the user has exchanged messages with.
+ * Used to populate the contacts sidebar, showing users sorted by the most recent message time,
+ * allowing quick access to ongoing conversations.
+ */
 export const getContactsForList = async (req, res, next) => {
   try {
     let { userId } = req;

@@ -5,20 +5,87 @@ import { HOST } from "@/lib/constants";
 import { getColor } from "@/lib/utils";
 import { FiMoreVertical } from "react-icons/fi";
 import moment from "moment";
+import { useEffect, useState } from "react";
+import apiClient from "@/lib/api-client";
+import { GET_USER_STATUS_ROUTE } from "@/lib/constants";
 
 const ChatHeader = () => {
-    const { selectedChatData, closeChat, selectedChatType } = useAppStore();
+    const { 
+        selectedChatData, 
+        closeChat, 
+        selectedChatType, 
+        userStatus, 
+        typingUsers 
+    } = useAppStore();
+    
+    const [userStatusData, setUserStatusData] = useState(null);
 
-    const getLastSeenText = () => {
-        if (!selectedChatData?.lastMessageTime) return null;
+    // Fetch user status when chat changes
+    useEffect(() => {
+        const fetchUserStatus = async () => {
+            if (selectedChatType === "contact" && selectedChatData?._id) {
+                try {
+                    const response = await apiClient.get(
+                        `${GET_USER_STATUS_ROUTE}/${selectedChatData._id}`,
+                        { withCredentials: true }
+                    );
+                    setUserStatusData(response.data);
+                } catch (error) {
+                    console.error("Error fetching user status:", error);
+                }
+            }
+        };
 
-        const lastSeen = moment(selectedChatData.lastMessageTime);
-        const now = moment();
+        fetchUserStatus();
+    }, [selectedChatData, selectedChatType]);
 
-        if (now.diff(lastSeen, "minutes") < 5) {
-            return "Online";
-        } else {
-            return `Last seen: ${lastSeen.fromNow()}`;
+    const getStatusText = () => {
+        if (selectedChatType !== "contact" || !selectedChatData?._id) return null;
+
+        const userId = selectedChatData._id;
+        const isTyping = typingUsers[userId];
+        const status = userStatus[userId] || userStatusData?.status;
+
+        if (isTyping) {
+            return "typing...";
+        }
+
+        switch (status) {
+            case "online":
+                return "Online";
+            case "away":
+                return "Away";
+            case "offline":
+                if (userStatusData?.lastSeen) {
+                    const lastSeen = moment(userStatusData.lastSeen);
+                    return `Last seen ${lastSeen.fromNow()}`;
+                }
+                return "Offline";
+            default:
+                return "Offline";
+        }
+    };
+
+    const getStatusColor = () => {
+        if (selectedChatType !== "contact" || !selectedChatData?._id) return "text-gray-500";
+
+        const userId = selectedChatData._id;
+        const isTyping = typingUsers[userId];
+        const status = userStatus[userId] || userStatusData?.status;
+
+        if (isTyping) {
+            return "text-blue-500";
+        }
+
+        switch (status) {
+            case "online":
+                return "text-green-500";
+            case "away":
+                return "text-yellow-500";
+            case "offline":
+                return "text-gray-500";
+            default:
+                return "text-gray-500";
         }
     };
     const darkColors = [
@@ -80,8 +147,8 @@ const ChatHeader = () => {
                                 : ""}
                         </div>
                         {selectedChatType === "contact" && (
-                            <div className="text-sm text-gray-500">
-                                {getLastSeenText()}
+                            <div className={`text-sm ${getStatusColor()}`}>
+                                {getStatusText()}
                             </div>
                         )}
                     </div>

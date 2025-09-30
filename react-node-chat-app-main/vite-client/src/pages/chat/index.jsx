@@ -11,12 +11,17 @@ const Chat = () => {
     const {
         userInfo,
         selectedChatType,
+        selectedChatData,
         isUploading,
         fileUploadProgress,
         isDownloading,
         downloadProgress,
         removeMessage, // Add this
         updateMessage, // Add this
+        setUserStatus,
+        setTypingUser,
+        userStatus,
+        typingUsers,
     } = useAppStore();
     const navigate = useNavigate();
     const socket = useSocket(); // Add this
@@ -38,15 +43,42 @@ const Chat = () => {
                 updateMessage(data.messageId, data.updatedMessage);
             };
 
+            const handleUserStatusChanged = (data) => {
+                setUserStatus(data.userId, data.status);
+            };
+
+            const handleUserTyping = (data) => {
+                setTypingUser(data.userId, data.isTyping);
+            };
+
             socket.on("message-deleted", handleMessageDeleted);
             socket.on("message-edited", handleMessageEdited);
+            socket.on("user-status-changed", handleUserStatusChanged);
+            socket.on("user-typing", handleUserTyping);
 
             return () => {
                 socket.off("message-deleted", handleMessageDeleted);
                 socket.off("message-edited", handleMessageEdited);
+                socket.off("user-status-changed", handleUserStatusChanged);
+                socket.off("user-typing", handleUserTyping);
             };
         }
-    }, [socket, removeMessage, updateMessage]);
+    }, [socket, removeMessage, updateMessage, setUserStatus, setTypingUser]);
+
+    // Update user status when chat changes
+    useEffect(() => {
+        if (socket && selectedChatType === "contact" && selectedChatData?._id) {
+            socket.emit("user-status", {
+                status: "online",
+                currentChat: selectedChatData._id,
+            });
+        } else if (socket) {
+            socket.emit("user-status", {
+                status: "away",
+                currentChat: null,
+            });
+        }
+    }, [socket, selectedChatType, selectedChatData]);
 
     return (
         <div className="flex h-[100vh] text-white overflow-hidden">

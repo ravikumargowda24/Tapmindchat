@@ -59,6 +59,24 @@ export const createChatSlice = (set, get) => ({
             ),
         });
     },
+    userStatus: {},
+    setUserStatus: (userId, status) => {
+        set((state) => ({
+            userStatus: {
+                ...state.userStatus,
+                [userId]: status,
+            },
+        }));
+    },
+    typingUsers: {},
+    setTypingUser: (userId, isTyping) => {
+        set((state) => ({
+            typingUsers: {
+                ...state.typingUsers,
+                [userId]: isTyping,
+            },
+        }));
+    },
 
     addChannel: (channel) => {
         const channels = get().channels;

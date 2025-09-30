@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion"; // ✅
 import apiClient from "@/lib/api-client";
 import { CREATE_CHANNEL, GET_ALL_CONTACTS } from "@/lib/constants";
 import { useSocket } from "@/contexts/SocketContext";
@@ -33,7 +34,7 @@ const CreateChannel = ({ isOpen, onOpenChange }) => {
                 console.error("Failed to fetch contacts", error);
             }
         };
-        if (isOpen) getData(); // fetch only when modal is open
+        if (isOpen) getData();
     }, [isOpen]);
 
     // Create new channel
@@ -62,6 +63,11 @@ const CreateChannel = ({ isOpen, onOpenChange }) => {
         }
     };
 
+    // Remove contact
+    const removeContact = (id) => {
+        setSelectedContacts((prev) => prev.filter((c) => c !== id));
+    };
+
     return (
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent className="bg-white text-black border rounded-lg w-[400px] h-max flex flex-col">
@@ -69,15 +75,56 @@ const CreateChannel = ({ isOpen, onOpenChange }) => {
                     <h3 className="font-semibold text-lg">Create a new Channel</h3>
                 </ModalHeader>
                 <ModalBody className="flex flex-col gap-4">
+                    {/* Selected contacts preview */}
+                    {selectedContacts.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-2 rounded-md border bg-gray-50">
+                            <AnimatePresence>
+                                {selectedContacts.map((id) => {
+                                    const contact = allContacts.find((c) => c._id === id);
+                                    return (
+                                        <motion.div
+                                            key={id}
+                                            initial={{ y: -20, scale: 0.5, opacity: 0 }}
+                                            animate={{
+                                                y: 0,
+                                                scale: 1,
+                                                opacity: 1,
+                                            }}
+                                            exit={{
+                                                y: 20,
+                                                scale: 0.5,
+                                                opacity: 0,
+                                            }}
+                                            transition={{
+                                                type: "spring",
+                                                stiffness: 500,
+                                                damping: 20,
+                                            }}
+                                            className="flex items-center gap-2 px-3 py-1 bg-purple-600 text-white rounded-full shadow-sm"
+                                        >
+                                            <span>{contact?.firstName || "Unknown"}</span>
+                                            <button
+                                                className="ml-1 text-xs bg-white text-purple-600 rounded-full w-5 h-5 flex items-center justify-center hover:bg-gray-200"
+                                                onClick={() => removeContact(id)}
+                                            >
+                                                ✕
+                                            </button>
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
+                        </div>
+                    )}
+
                     {/* Channel Name Input */}
                     <Input
                         placeholder="Channel Name"
-                        className="rounded-lg py-6 px-4 border"
+                        className="rounded-md"
                         value={channelName}
                         onChange={(e) => setChannelName(e.target.value)}
                     />
 
-                    {/* Contact Selector (HeroUI Select Multiple) */}
+                    {/* Contact Selector */}
                     <Select
                         label="Select Contacts"
                         selectionMode="multiple"
@@ -85,12 +132,11 @@ const CreateChannel = ({ isOpen, onOpenChange }) => {
                         selectedKeys={selectedContacts}
                         onSelectionChange={(keys) =>
                             setSelectedContacts(Array.from(keys))
-
                         }
                     >
                         {allContacts.map((contact) => (
-                            <SelectItem key={contact.value} value={contact.value}>
-                                {contact.label}
+                            <SelectItem key={contact._id} value={contact._id}>
+                                {contact.firstName}
                             </SelectItem>
                         ))}
                     </Select>

@@ -1,6 +1,7 @@
 import { Server as SocketIOServer } from "socket.io";
 import Message from "./model/MessagesModel.js";
 import Channel from "./model/ChannelModel.js";
+import User from "./model/UserModel.js";
 
 const setupSocket = (server) => {
   const io = new SocketIOServer(server, {
@@ -12,6 +13,62 @@ const setupSocket = (server) => {
   });
 
   const userSocketMap = new Map(); // ✅ Move before usage
+  const typingUsers = new Map(); // Track typing users
+
+  // Update user status
+  const updateUserStatus = async (userId, status, currentChat = null) => {
+    try {
+      await User.findByIdAndUpdate(userId, {
+        status,
+        lastSeen: new Date(),
+        currentChat,
+      });
+    } catch (error) {
+      console.error("Error updating user status:", error);
+    }
+  };
+
+  // Broadcast status to relevant users
+  const broadcastStatus = (userId, status, currentChat = null) => {
+    const userSocketId = userSocketMap.get(userId);
+    if (userSocketId) {
+      // If user is in a direct chat, notify the other person
+      if (currentChat) {
+        const otherUserSocketId = userSocketMap.get(currentChat);
+        if (otherUserSocketId) {
+          io.to(otherUserSocketId).emit("user-status-changed", {
+            userId,
+            status,
+            lastSeen: new Date(),
+          });
+        }
+      }
+    }
+  };
+
+  // Handle typing indicators
+  const handleTyping = (data) => {
+    const { userId, recipientId, isTyping } = data;
+    const recipientSocketId = userSocketMap.get(recipientId);
+    
+    if (recipientSocketId) {
+      if (isTyping) {
+        typingUsers.set(userId, { recipientId, timestamp: Date.now() });
+        io.to(recipientSocketId).emit("user-typing", { userId, isTyping: true });
+        
+        // Auto-stop typing after 3 seconds
+        setTimeout(() => {
+          if (typingUsers.has(userId)) {
+            typingUsers.delete(userId);
+            io.to(recipientSocketId).emit("user-typing", { userId, isTyping: false });
+          }
+        }, 3000);
+      } else {
+        typingUsers.delete(userId);
+        io.to(recipientSocketId).emit("user-typing", { userId, isTyping: false });
+      }
+    }
+  };
 
   // const deleteMessageSocket = async (data) => {
   //   const { messageId, channelId } = data;
@@ -216,6 +273,7 @@ const setupSocket = (server) => {
 
     if (userId) {
       userSocketMap.set(userId, socket.id);
+      updateUserStatus(userId, 'online');
       console.log(`User connected: ${userId} with socket ID: ${socket.id}`);
     } else {
       console.log("User ID not provided during connection.");
@@ -229,7 +287,27 @@ const setupSocket = (server) => {
     socket.on("delete-message", deleteMessageSocket);
     socket.on("edit-message", editMessageSocket);
 
-    socket.on("disconnect", () => disconnect(socket));
+    // Status and typing events
+    socket.on("user-status", (data) => {
+      const { status, currentChat } = data;
+      updateUserStatus(userId, status, currentChat);
+      broadcastStatus(userId, status, currentChat);
+    });
+
+    socket.on("typing", handleTyping);
+
+    socket.on("disconnect", () => {
+      if (userId) {
+        updateUserStatus(userId, 'offline');
+        // Notify all users who were in chat with this user
+        User.findById(userId).then(user => {
+          if (user && user.currentChat) {
+            broadcastStatus(userId, 'offline', user.currentChat);
+          }
+        });
+      }
+      disconnect(socket);
+    });
   });
 };
 

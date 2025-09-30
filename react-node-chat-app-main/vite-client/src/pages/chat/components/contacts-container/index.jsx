@@ -5,6 +5,7 @@ import apiClient from "@/lib/api-client";
 import {
     GET_CONTACTS_WITH_MESSAGES_ROUTE,
     GET_USER_CHANNELS,
+    GET_ALL_CONTACTS,
 } from "@/lib/constants";
 import {
     Dropdown,
@@ -33,6 +34,10 @@ const ContactsContainer = () => {
     const [isNewDMOpen, setIsNewDMOpen] = useState(false);
     const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [searchTermGroup, setSearchTermGroup] = useState("");
+    const [searchAllContact, setsearchAllContact] = useState("");
+
+    const [allContacts, setAllContacts] = useState([]);
 
     useEffect(() => {
         const getContactsWithMessages = async () => {
@@ -61,6 +66,18 @@ const ContactsContainer = () => {
         getChannels();
     }, [setChannels]);
 
+    useEffect(() => {
+        const getAllContacts = async () => {
+            const response = await apiClient.get(GET_ALL_CONTACTS, {
+                withCredentials: true,
+            });
+            if (response.data.contacts) {
+                setAllContacts(response.data.contacts);
+            }
+        };
+        getAllContacts();
+    }, []);
+
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
@@ -78,6 +95,22 @@ const ContactsContainer = () => {
             return name.toLowerCase().includes(searchTerm.toLowerCase());
         });
     };
+    const filterGroups = (contacts) => {
+        if (!searchTermGroup) return contacts;
+        return contacts.filter((contact) => {
+            const name = contact.name || `${contact.firstName || ''} ${contact.lastName || ''}`;
+            return name.toLowerCase().includes(searchTermGroup.toLowerCase());
+        });
+    };
+    const filterAll = (contacts) => {
+        if (!searchAllContact) return contacts;
+        return contacts.filter((contact) => {
+            const name = contact.name || `${contact.firstName || ''} ${contact.lastName || ''}`;
+            return name.toLowerCase().includes(searchAllContact.toLowerCase());
+        });
+    };
+
+
 
     return (
         <motion.div
@@ -115,17 +148,7 @@ const ContactsContainer = () => {
                     </motion.div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
-                    />
-                </div>
+
             </div>
 
             {/* Tabs */}
@@ -136,8 +159,28 @@ const ContactsContainer = () => {
                             DIRECT
                         </span>
                     }>
+
                         <div className="mt-2">
-                            <ContactList contacts={filterContacts(directMessagesContacts)} />
+                            {directMessagesContacts && directMessagesContacts.length > 0 ? (
+                                <>
+                                    {/* Search Bar */}
+                                    <div className="relative mb-4">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500  transition-all"
+                                        />
+                                    </div>
+                                    <ContactList contacts={filterContacts(directMessagesContacts)} />
+                                </>
+                            ) : (
+                                <div className="text-center text-gray-500 text-sm py-8">
+                                    No Chats
+                                </div>
+                            )}
                         </div>
                     </Tab>
                     <Tab key="groups" title={
@@ -147,7 +190,20 @@ const ContactsContainer = () => {
                     }>
                         <div className="mt-2">
                             {channels && channels.length > 0 ? (
-                                <ContactList contacts={filterContacts(channels)} isChannel />
+                                <>
+                                    {/* Search Bar */}
+                                    <div className="relative mb-4">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search"
+                                            value={searchTermGroup}
+                                            onChange={(e) => setSearchTermGroup(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500  transition-all"
+                                        />
+                                    </div>
+                                    <ContactList contacts={filterGroups(channels)} isChannel />
+                                </>
                             ) : (
                                 <div className="text-center text-gray-500 text-sm py-8">
                                     No groups
@@ -157,13 +213,30 @@ const ContactsContainer = () => {
                     </Tab>
                     <Tab key="public" title={
                         <span className="text-xs font-semibold tracking-wider uppercase">
-                            PUBLIC
+                            CONTACT
                         </span>
                     }>
                         <div className="mt-2">
-                            <div className="text-center text-gray-500 text-sm py-8">
-                                No public chats
-                            </div>
+                            {allContacts && allContacts.length > 0 ? (
+                                <>
+                                    {/* Search Bar */}
+                                    <div className="relative mb-4">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search"
+                                            value={searchAllContact}
+                                            onChange={(e) => setsearchAllContact(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500  transition-all"
+                                        />
+                                    </div>
+                                    <ContactList contacts={filterAll(allContacts)} />
+                                </>
+                            ) : (
+                                <div className="text-center text-gray-500 text-sm py-8">
+                                    No Contacts
+                                </div>
+                            )}
                         </div>
                     </Tab>
                 </Tabs>

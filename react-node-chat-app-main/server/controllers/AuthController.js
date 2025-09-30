@@ -205,3 +205,21 @@ export const removeProfileImage = async (request, response, next) => {
     return response.status(500).send("Internal Server Error.");
   }
 };
+
+export const getUserStatus = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select("status lastSeen currentChat");
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    return res.status(200).json({ 
+      status: user.status, 
+      lastSeen: user.lastSeen,
+      currentChat: user.currentChat 
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send("Internal Server Error");
+  }
+};

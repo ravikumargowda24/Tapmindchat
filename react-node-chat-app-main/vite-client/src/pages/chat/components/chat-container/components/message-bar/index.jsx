@@ -26,6 +26,8 @@ const MessageBar = () => {
     const [message, setMessage] = useState("");
     const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
     const [showAlert, setShowAlert] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
+    const typingTimeoutRef = useRef(null);
 
     const socket = useSocket();
 
@@ -41,6 +43,22 @@ const MessageBar = () => {
         };
     }, [emojiRef]);
 
+    // Cleanup typing indicator on unmount
+    useEffect(() => {
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+            if (isTyping && selectedChatType === "contact" && selectedChatData?._id) {
+                socket.emit("typing", {
+                    userId: userInfo.id,
+                    recipientId: selectedChatData._id,
+                    isTyping: false,
+                });
+            }
+        };
+    }, [socket, isTyping, selectedChatType, selectedChatData, userInfo.id]);
+
 
     const handleAddEmoji = (emoji) => {
         setMessage((msg) => msg + emoji.emoji);
@@ -48,6 +66,33 @@ const MessageBar = () => {
 
     const handleMessageChange = (event) => {
         setMessage(event.target.value);
+    
+        // Handle typing indicators for direct messages
+        if (selectedChatType === "contact" && selectedChatData?._id) {
+            if (!isTyping) {
+                setIsTyping(true);
+                socket.emit("typing", {
+                    userId: userInfo.id,
+                    recipientId: selectedChatData._id,
+                    isTyping: true,
+                });
+            }
+
+            // Clear existing timeout
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+
+            // Set new timeout to stop typing
+            typingTimeoutRef.current = setTimeout(() => {
+                setIsTyping(false);
+                socket.emit("typing", {
+                    userId: userInfo.id,
+                    recipientId: selectedChatData._id,
+                    isTyping: false,
+                });
+            }, 1000);
+        }
     };
 
 
@@ -56,6 +101,19 @@ const MessageBar = () => {
             setShowAlert(true);
             setTimeout(() => setShowAlert(false), 3000); // hide alert after 3 sec
             return;
+        }
+
+        // Stop typing indicator
+        if (isTyping && selectedChatType === "contact" && selectedChatData?._id) {
+            setIsTyping(false);
+            socket.emit("typing", {
+                userId: userInfo.id,
+                recipientId: selectedChatData._id,
+                isTyping: false,
+            });
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
         }
 
         // Handle send new message
@@ -150,7 +208,7 @@ const MessageBar = () => {
                     />
 
                     <button
-                        className="text-gray-500 hover:text-gray-700 transition-all duration-200"
+                        className="text-gray-500 hover:text-gray-700 transition-all duration-200 cursor-pointer"
                         onClick={handleAttachmentClick}
                     >
                         <GrAttachment className="text-xl" />
@@ -165,10 +223,10 @@ const MessageBar = () => {
 
                     <div className="relative">
                         <button
-                            className="text-gray-500 hover:text-gray-700 transition-all duration-200"
+                            className="text-gray-500 hover:text-gray-700 transition-all duration-200 cursor-pointer"
                             onClick={() => setEmojiPickerOpen(true)}
                         >
-                            <RiEmojiStickerLine className="text-xl cursor-pointer" />
+                            <RiEmojiStickerLine className="text-xl " />
                         </button>
 
                         <div className="absolute bottom-14 right-0 cursor-pointer" ref={emojiRef}>

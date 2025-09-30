@@ -31,6 +31,20 @@ const userSchema = new mongoose.Schema({
     type: Number,
     required: false,
   },
+  status: {
+    type: String,
+    enum: ['online', 'away', 'offline'],
+    default: 'offline',
+  },
+  lastSeen: {
+    type: Date,
+    default: Date.now,
+  },
+  currentChat: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Users',
+    default: null,
+  },
 });
 
 userSchema.pre("save", async function (next) {

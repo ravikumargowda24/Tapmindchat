@@ -27,6 +27,9 @@ export const DELETE_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/delete-message`;
 export const EDIT_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/edit-message`;
 export const FORWARD_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/forward-message`;
 
+
+export const GET_USER_STATUS_ROUTE = `${AUTH_ROUTES}/user-status`;
+
 export const MESSAGE_TYPES = {
     TEXT: "text",
     FILE: "file",
