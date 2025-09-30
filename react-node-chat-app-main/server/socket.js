@@ -258,6 +258,84 @@ const setupSocket = (server) => {
     }
   };
 
+
+  const handleAddMembersToChannel = async (data) => {
+    const { channelId, newMembers, addedBy } = data;
+    
+    try {
+      const channel = await Channel.findById(channelId).populate("members");
+      if (channel && channel.members) {
+        // Notify all existing members about new members
+        channel.members.forEach((member) => {
+          const memberSocketId = userSocketMap.get(member._id.toString());
+          if (memberSocketId) {
+            io.to(memberSocketId).emit("members-added-to-channel", {
+              channelId,
+              newMembers,
+              addedBy
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error handling add members:", error);
+    }
+  };
+
+  const handleRemoveMemberFromChannel = async (data) => {
+    const { channelId, removedMemberId, removedBy } = data;
+    
+    try {
+      const channel = await Channel.findById(channelId).populate("members");
+      if (channel && channel.members) {
+        // Notify all members about removed member
+        channel.members.forEach((member) => {
+          const memberSocketId = userSocketMap.get(member._id.toString());
+          if (memberSocketId) {
+            io.to(memberSocketId).emit("member-removed-from-channel", {
+              channelId,
+              removedMemberId,
+              removedBy
+            });
+          }
+        });
+        
+        // Notify the removed member
+        const removedMemberSocketId = userSocketMap.get(removedMemberId);
+        if (removedMemberSocketId) {
+          io.to(removedMemberSocketId).emit("removed-from-channel", {
+            channelId,
+            removedBy
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error handling remove member:", error);
+    }
+  };
+
+  const handleDeleteChannel = async (data) => {
+    const { channelId, deletedBy } = data;
+    
+    try {
+      const channel = await Channel.findById(channelId).populate("members");
+      if (channel && channel.members) {
+        // Notify all members about channel deletion
+        channel.members.forEach((member) => {
+          const memberSocketId = userSocketMap.get(member._id.toString());
+          if (memberSocketId) {
+            io.to(memberSocketId).emit("channel-deleted", {
+              channelId,
+              deletedBy
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error handling delete channel:", error);
+    }
+  };
+
   const disconnect = (socket) => {
     console.log("Client disconnected", socket.id);
     for (const [userId, socketId] of userSocketMap.entries()) {
@@ -286,6 +364,11 @@ const setupSocket = (server) => {
     socket.on("send-channel-message", sendChannelMessage);
     socket.on("delete-message", deleteMessageSocket);
     socket.on("edit-message", editMessageSocket);
+    
+    // Group management socket events
+    socket.on("add-members-to-channel", handleAddMembersToChannel);
+    socket.on("remove-member-from-channel", handleRemoveMemberFromChannel);
+    socket.on("delete-channel", handleDeleteChannel);
 
     // Status and typing events
     socket.on("user-status", (data) => {

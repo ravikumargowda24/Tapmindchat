@@ -179,7 +179,7 @@ const ForwardModal = ({ isOpen, onClose, message }) => {
                                                 isSelected={selectedChannels.includes(channel._id)}
                                                 onChange={() => handleChannelToggle(channel._id)}
                                             />
-                                            <div className="w-8 h-8 bg-[#8417ff] rounded-full flex items-center justify-center">
+                                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                                                 <span className="text-white text-xs font-bold">#</span>
                                             </div>
                                             <div>

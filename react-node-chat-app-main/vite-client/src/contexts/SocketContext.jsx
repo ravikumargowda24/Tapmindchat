@@ -30,14 +30,19 @@ export const SocketProvider = ({ children }) => {
                     selectedChatType: currentChatType,
                     addMessage,
                     addContactInDMContacts,
+                    incrementUnreadCount,
                 } = useAppStore.getState();
 
-                if (
-                    currentChatType !== undefined &&
+                const isCurrentChat = currentChatType !== undefined &&
                     (currentChatData._id === message.sender._id ||
-                        currentChatData._id === message.recipient._id)
-                ) {
+                        currentChatData._id === message.recipient._id);
+
+                if (isCurrentChat) {
                     addMessage(message);
+                } else {
+                    const userId = useAppStore.getState().userInfo.id;
+                    const chatId = message.sender._id === userId ? message.recipient._id : message.sender._id;
+                    incrementUnreadCount(chatId, 'contact');
                 }
                 addContactInDMContacts(message);
             };
@@ -48,13 +53,16 @@ export const SocketProvider = ({ children }) => {
                     selectedChatType,
                     addMessage,
                     addChannelInChannelLists,
+                    incrementUnreadCount,
                 } = useAppStore.getState();
 
-                if (
-                    selectedChatType !== undefined &&
-                    selectedChatData._id === message.channelId
-                ) {
+                const isCurrentChat = selectedChatType !== undefined &&
+                    selectedChatData._id === message.channelId;
+
+                if (isCurrentChat) {
                     addMessage(message);
+                } else {
+                    incrementUnreadCount(message.channelId, 'channel');
                 }
                 addChannelInChannelLists(message);
             };

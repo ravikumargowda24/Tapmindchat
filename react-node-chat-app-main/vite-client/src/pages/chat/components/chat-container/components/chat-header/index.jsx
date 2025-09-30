@@ -5,22 +5,24 @@ import { HOST } from "@/lib/constants";
 import { getColor } from "@/lib/utils";
 import { FiMoreVertical } from "react-icons/fi";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import apiClient from "@/lib/api-client";
 import { GET_USER_STATUS_ROUTE } from "@/lib/constants";
 
 const ChatHeader = () => {
-    const { 
-        selectedChatData, 
-        closeChat, 
-        selectedChatType, 
-        userStatus, 
-        typingUsers 
+    const {
+        selectedChatData,
+        closeChat,
+        selectedChatType,
+        userStatus,
+        typingUsers
     } = useAppStore();
-    
-    const [userStatusData, setUserStatusData] = useState(null);
 
-    // Fetch user status when chat changes
+    const [userStatusData, setUserStatusData] = useState(null);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Fetch user status
     useEffect(() => {
         const fetchUserStatus = async () => {
             if (selectedChatType === "contact" && selectedChatData?._id) {
@@ -35,9 +37,21 @@ const ChatHeader = () => {
                 }
             }
         };
-
         fetchUserStatus();
     }, [selectedChatData, selectedChatType]);
+
+    // Dropdown click outside handler
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const getStatusText = () => {
         if (selectedChatType !== "contact" || !selectedChatData?._id) return null;
@@ -88,23 +102,35 @@ const ChatHeader = () => {
                 return "text-gray-500";
         }
     };
-    const darkColors = [
-        // "#1E293B", // slate
-        // "#0F172A", // dark navy
-        // "#3B0764", // deep purple
-        // "#450A0A", // deep red
-        // "#14532D", // forest green
-        // "#064E3B", // teal
-        // "#1E3A8A", // royal blue
-        "#581C87", // violet
-    ];
+
+    const darkColors = ["#581C87"];
 
     function getRandomDarkColor() {
         const index = Math.floor(Math.random() * darkColors.length);
         return darkColors[index];
     }
+
+    const handleDropdownToggle = () => {
+        setDropdownOpen(!dropdownOpen);
+    };
+
+    const handleDelete = () => {
+        console.log(selectedChatType === "contact" ? "Delete Chat" : "Delete Channel");
+        setDropdownOpen(false);
+    };
+
+    const handleAddMember = () => {
+        console.log("Add Member");
+        setDropdownOpen(false);
+    };
+
+    const handleRemoveMember = () => {
+        console.log("Remove Member");
+        setDropdownOpen(false);
+    };
+
     return (
-        <div className="h-[10vh] border-b border-gray-200 bg-white flex items-center justify-between px-6 shadow-sm">
+        <div className="h-[10vh] border-b border-gray-200 bg-white flex items-center justify-between px-6 shadow-sm relative">
             <div className="flex gap-4 items-center">
                 <div className="flex gap-3 items-center">
                     <div className="w-12 h-12 relative flex items-center justify-center">
@@ -154,13 +180,50 @@ const ChatHeader = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-4">
-                <button
-                    className="text-gray-500 focus:outline-none transition-all duration-200"
 
+            <div className="flex items-center gap-4 relative" ref={dropdownRef}>
+                <button
+                    className="text-gray-500 focus:outline-none transition-all duration-200 relative"
+                    onClick={handleDropdownToggle}
                 >
-                    < FiMoreVertical className="text-3xl cursor-pointer" />
+                    <FiMoreVertical className="text-3xl cursor-pointer" />
                 </button>
+
+                {dropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 bg-white text-black  rounded-md shadow-md w-48 z-50">
+                        {selectedChatType === "contact" && (
+                            <button
+                                onClick={handleDelete}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                                Delete Chat
+                            </button>
+                        )}
+
+                        {selectedChatType === "channel" && (
+                            <>
+                                <button
+                                    onClick={handleDelete}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Delete Channel
+                                </button>
+                                <button
+                                    onClick={handleAddMember}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Add Member
+                                </button>
+                                <button
+                                    onClick={handleRemoveMember}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Remove Member
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
 
                 <button
                     className="text-gray-500 hover:text-red-500 focus:outline-none transition-all duration-200"

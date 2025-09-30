@@ -86,7 +86,7 @@ const MessageMenu = ({ message, userInfo, chatType, onDelete, onForward, onCopy,
                 <>
                     <DropdownItem
                         key="edit"
-                        startContent={<SquarePen size={16} className="text-violet-500" />}
+                        startContent={<SquarePen size={16} className="text-violet" />}
                         onClick={() => onEdit(message)}
                     >
                         Edit
@@ -399,7 +399,7 @@ const MessageContainer = () => {
                     className={`relative max-w-[65%] px-4 py-2 text-sm shadow-sm
               ${isReceiver
                             ? "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm border border-gray-200"
-                            : "bg-[#8417ff]/10 text-[#8417ff] rounded-2xl rounded-tr-sm border border-[#8417ff]/30"
+                            : "bg-primary/10 text-primary rounded-2xl rounded-tr-sm border border-primary/30"
                         }`}
                 >
                     {isReceiver && (
@@ -485,12 +485,12 @@ const MessageContainer = () => {
                     <div
                         className={`relative max-w-[65%] min-w[150px] px-4 py-2 text-sm shadow-sm
               ${isSender
-                                ? "bg-[#8417ff]/10 text-[#8417ff] rounded-2xl rounded-tr-sm border border-[#8417ff]/30"
+                                ? "bg-primary/10 text-primary rounded-2xl rounded-tr-sm border border-primary/30"
                                 : "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm border border-gray-200"
                             }`}
                     >
                         <div
-                            className={`text-xs font-semibold mb-1 ${isSender ? "text-[#8417ff]/80" : "text-red-600"
+                            className={`text-xs font-semibold mb-1 ${isSender ? "text-primary/80" : "text-red-600"
                                 }`}
                         >
                             {isSender ? "You" : `${message.sender.firstName}`}

@@ -3,6 +3,9 @@ import {
   createChannel,
   getChannelMessages,
   getUserChannels,
+  addMembersToChannel,
+  removeMemberFromChannel,
+  deleteChannel,
 } from "../controllers/ChannelControllers.js";
 import { verifyToken } from "../middlewares/AuthMiddleware.js";
 
@@ -15,5 +18,8 @@ channelRoutes.get(
   verifyToken,
   getChannelMessages
 );
+channelRoutes.post("/:channelId/add-members", verifyToken, addMembersToChannel);
+channelRoutes.post("/:channelId/remove-member", verifyToken, removeMemberFromChannel);
+channelRoutes.delete("/:channelId", verifyToken, deleteChannel);
 
 export default channelRoutes;

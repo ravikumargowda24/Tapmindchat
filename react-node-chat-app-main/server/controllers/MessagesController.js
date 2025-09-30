@@ -188,8 +188,8 @@ export const editMessage = async (req, res, next) => {
       { content, edited: true, editedAt: new Date() },
       { new: true }
     ).populate("sender", "id email firstName lastName image color")
-     .populate("recipient", "id email firstName lastName image color")
-     .exec();
+      .populate("recipient", "id email firstName lastName image color")
+      .exec();
 
     let channelId = null;
     let recipientId = message.recipient ? message.recipient.toString() : null;
@@ -200,13 +200,27 @@ export const editMessage = async (req, res, next) => {
       channelId = channel?._id ? channel._id.toString() : null;
     }
 
-    return res.status(200).json({ 
-      messageId, 
-      senderId, 
-      recipientId, 
-      channelId, 
-      updatedMessage 
+    return res.status(200).json({
+      messageId,
+      senderId,
+      recipientId,
+      channelId,
+      updatedMessage
     });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+export const markAsRead = async (req, res, next) => {
+  try {
+    const { chatId, chatType } = req.body;
+    const userId = req.userId;
+
+    // For now, just return success. In a real app, you might update a lastRead timestamp
+    // But since unread counts are managed client-side, this is sufficient
+    return res.status(200).json({ success: true });
   } catch (err) {
     console.log(err);
     return res.status(500).send("Internal Server Error");

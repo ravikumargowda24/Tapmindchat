@@ -130,7 +130,7 @@ const ContactsContainer = () => {
                         <Dropdown>
                             <DropdownTrigger>
                                 <motion.div
-                                    className="cursor-pointer bg-purple-500 w-8 h-8 rounded-full flex justify-center items-center text-white hover:bg-purple-600 transition-colors"
+                                    className="cursor-pointer bg-violet w-8 h-8 rounded-full flex justify-center items-center text-white hover:bg-violet/90 transition-colors"
                                 >
                                     <MessageCirclePlus size={16} />
                                 </motion.div>
@@ -171,7 +171,7 @@ const ContactsContainer = () => {
                                             placeholder="Search"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500  transition-all"
+                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet  transition-all"
                                         />
                                     </div>
                                     <ContactList contacts={filterContacts(directMessagesContacts)} />
@@ -199,7 +199,7 @@ const ContactsContainer = () => {
                                             placeholder="Search"
                                             value={searchTermGroup}
                                             onChange={(e) => setSearchTermGroup(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500  transition-all"
+                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet  transition-all"
                                         />
                                     </div>
                                     <ContactList contacts={filterGroups(channels)} isChannel />
@@ -227,7 +227,7 @@ const ContactsContainer = () => {
                                             placeholder="Search"
                                             value={searchAllContact}
                                             onChange={(e) => setsearchAllContact(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500  transition-all"
+                                            className="w-full pl-10 pr-4 py-2 text-black bg-gray-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet  transition-all"
                                         />
                                     </div>
                                     <ContactList contacts={filterAll(allContacts)} />

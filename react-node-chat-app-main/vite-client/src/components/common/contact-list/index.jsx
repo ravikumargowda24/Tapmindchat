@@ -3,6 +3,7 @@ import { getColor } from "@/lib/utils";
 import { useAppStore } from "@/store";
 import { Avatar } from "@/components/ui/avatar";
 import { FiMoreVertical } from "react-icons/fi";
+import moment from "moment";
 
 
 
@@ -12,7 +13,10 @@ const ContactList = ({ contacts, isChannel = false }) => {
         setSelectedChatType,
         setSelectedChatData,
         setSelectedChatMessages,
+        unreadCounts,
+        markAsRead,
     } = useAppStore();
+    console.log(contacts, "contact")
 
     const handleClick = (contact) => {
         if (isChannel) setSelectedChatType("channel");
@@ -21,15 +25,11 @@ const ContactList = ({ contacts, isChannel = false }) => {
         if (selectedChatData && selectedChatData._id !== contact._id) {
             setSelectedChatMessages([]);
         }
+        // Mark as read
+        const chatType = isChannel ? "channel" : "contact";
+        markAsRead(contact._id, chatType);
     };
     const darkColors = [
-        // "#1E293B", // slate
-        // "#0F172A", // dark navy
-        // "#3B0764", // deep purple
-        // "#450A0A", // deep red
-        // "#14532D", // forest green
-        // "#064E3B", // teal
-        // "#1E3A8A", // royal blue
         "#581C87", // violet
     ];
 
@@ -45,13 +45,13 @@ const ContactList = ({ contacts, isChannel = false }) => {
                     contacts.map((contact) => (
                         <div
                             key={contact._id}
-                            className={`p-2 py-2 transition-all border border-violet-500 flex w-full duration-300 cursor-pointer shadow-lg rounded-xl h-18 my-3 ${selectedChatData && selectedChatData._id === contact._id
-                                ? "bg-[#d9c3f1] text-black "
+                            className={`p-2 py-2 transition-all border border-violet flex w-full duration-300 cursor-pointer shadow-lg rounded-xl h-18 my-3 ${selectedChatData && selectedChatData._id === contact._id
+                                ? "bg-light-purple text-black "
                                 : "hover:bg-gray-100 text-gray-700"
                                 }`}
                             onClick={() => handleClick(contact)}
                         >
-                            <div className="flex gap-3 justify-between">
+                            <div className="flex gap-3 justify-between w-[100%]">
                                 {!isChannel && (
                                     <Avatar className="h-10 w-10">
                                         {contact.image ? (
@@ -82,17 +82,45 @@ const ContactList = ({ contacts, isChannel = false }) => {
                                     </div>
                                 )}
                                 {isChannel ? (
-                                    <div className="flex flex-col">
-                                        <span className="font-medium">{contact.name}</span>
+                                    <div className="flex flex-col flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-medium">{contact.name}</span>
+                                            {unreadCounts[`channel_${contact._id}`] > 0 && (
+                                                <span className="ml-2 w-6 h-6 flex justify-center items-center bg-red-500 text-white text-xs p-2 rounded-full">
+                                                    {unreadCounts[`channel_${contact._id}`]}
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className="text-xs text-gray-500 truncate w-40">
-                                            {contact.lastMessage ? contact.lastMessage : "No messages yet"}
+                                            {contact.lastMessageTime
+                                                ? moment(contact.lastMessageTime).calendar(null, {
+                                                    sameDay: "[Today] h:mm A",
+                                                    lastDay: "[Yesterday] h:mm A",
+                                                    lastWeek: "ddd h:mm A",
+                                                    sameElse: "DD/MM/YYYY h:mm A"
+                                                })
+                                                : "No messages yet"}
                                         </span>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col">
-                                        <span className="font-medium">{`${contact.firstName}`}</span>
+                                    <div className="flex flex-col flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-medium">{`${contact.firstName}`}</span>
+                                            {unreadCounts[`contact_${contact._id}`] > 0 && (
+                                                <span className="ml-2 w-6 h-6 flex justify-center items-center bg-red-500 text-white text-xs p-2 rounded-full">
+                                                    {unreadCounts[`contact_${contact._id}`]}
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className="text-xs text-gray-500 truncate w-40">
-                                            {contact.lastMessage ? contact.lastMessage : "No messages yet"}
+                                            {contact.lastMessageTime
+                                                ? moment(contact.lastMessageTime).calendar(null, {
+                                                    sameDay: "[Today] h:mm A",
+                                                    lastDay: "[Yesterday] h:mm A",
+                                                    lastWeek: "ddd h:mm A",
+                                                    sameElse: "DD/MM/YYYY h:mm A"
+                                                })
+                                                : "No messages yet"}
                                         </span>
                                     </div>
                                 )}

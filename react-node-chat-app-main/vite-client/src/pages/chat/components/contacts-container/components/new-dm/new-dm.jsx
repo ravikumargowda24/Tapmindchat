@@ -91,8 +91,8 @@ const NewDM = ({ isOpen, onOpenChange }) => {
                             {searchedContacts.length <= 0 && (
                                 <div className="flex flex-col justify-center items-center text-gray-500 mt-5">
                                     <h3 className="text-center">
-                                        Hi<span className="text-purple-500">!</span> Search new
-                                        <span className="text-purple-500"> Contact. </span>
+                                        Hi<span className="text-violet">!</span> Search new
+                                        <span className="text-violet"> Contact. </span>
                                     </h3>
                                 </div>
                             )}

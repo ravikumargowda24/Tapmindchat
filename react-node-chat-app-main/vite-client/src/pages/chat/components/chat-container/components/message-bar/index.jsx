@@ -66,7 +66,7 @@ const MessageBar = () => {
 
     const handleMessageChange = (event) => {
         setMessage(event.target.value);
-    
+
         // Handle typing indicators for direct messages
         if (selectedChatType === "contact" && selectedChatData?._id) {
             if (!isTyping) {
@@ -241,7 +241,7 @@ const MessageBar = () => {
                 </div>
 
                 <button
-                    className="bg-[#8417ff] rounded-full flex items-center justify-center p-2 text-white hover:bg-[#741bda] transition-all duration-200 cursor-pointer"
+                    className="bg-primary rounded-full flex items-center justify-center p-2 text-white hover:bg-primary-hover transition-all duration-200 cursor-pointer"
                     onClick={handleSendMessage}
                 >
                     <IoSend className="text-xl" />

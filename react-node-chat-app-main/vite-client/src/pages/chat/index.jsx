@@ -16,15 +16,14 @@ const Chat = () => {
         fileUploadProgress,
         isDownloading,
         downloadProgress,
-        removeMessage, // Add this
-        updateMessage, // Add this
+        removeMessage,
+        updateMessage,
         setUserStatus,
         setTypingUser,
-        userStatus,
-        typingUsers,
     } = useAppStore();
+
     const navigate = useNavigate();
-    const socket = useSocket(); // Add this
+    const socket = useSocket();
 
     useEffect(() => {
         if (!userInfo.profileSetup) {
@@ -78,6 +77,33 @@ const Chat = () => {
                 currentChat: null,
             });
         }
+    }, [socket, selectedChatType, selectedChatData]);
+
+    /** NEW EFFECT: Trigger "away" when tab is inactive */
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                if (socket) {
+                    socket.emit("user-status", {
+                        status: "away",
+                        currentChat: selectedChatData?._id || null,
+                    });
+                }
+            } else {
+                if (socket && selectedChatType === "contact" && selectedChatData?._id) {
+                    socket.emit("user-status", {
+                        status: "online",
+                        currentChat: selectedChatData._id,
+                    });
+                }
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
     }, [socket, selectedChatType, selectedChatData]);
 
     return (

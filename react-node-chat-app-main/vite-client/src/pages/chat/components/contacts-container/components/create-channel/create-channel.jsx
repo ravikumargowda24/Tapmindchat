@@ -100,11 +100,11 @@ const CreateChannel = ({ isOpen, onOpenChange }) => {
                                                 stiffness: 500,
                                                 damping: 20,
                                             }}
-                                            className="flex items-center gap-2 px-3 py-1 bg-purple-600 text-white rounded-full shadow-sm"
+                                            className="flex items-center gap-2 px-3 py-1 bg-violet text-white rounded-full shadow-sm"
                                         >
                                             <span>{contact?.firstName || "Unknown"}</span>
                                             <button
-                                                className="ml-1 text-xs bg-white text-purple-600 rounded-full w-5 h-5 flex items-center justify-center hover:bg-gray-200"
+                                                className="ml-1 text-xs bg-white text-violet rounded-full w-5 h-5 flex items-center justify-center hover:bg-gray-200"
                                                 onClick={() => removeContact(id)}
                                             >
                                                 ✕
@@ -144,7 +144,7 @@ const CreateChannel = ({ isOpen, onOpenChange }) => {
                     {/* Create Button */}
                     <Button
                         onClick={createChannel}
-                        className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white transition-all duration-300"
+                        className="w-full mt-2 bg-violet hover:bg-violet/90 text-white transition-all duration-300"
                     >
                         Create Channel
                     </Button>

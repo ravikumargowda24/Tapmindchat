@@ -26,6 +26,7 @@ export const GET_ALL_CONTACTS = `${CONTACTS_ROTUES}/all-contacts`;
 export const DELETE_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/delete-message`;
 export const EDIT_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/edit-message`;
 export const FORWARD_MESSAGE_ROUTE = `${MESSAGES_ROUTES}/forward-message`;
+export const MARK_AS_READ_ROUTE = `${MESSAGES_ROUTES}/mark-as-read`;
 
 
 export const GET_USER_STATUS_ROUTE = `${AUTH_ROUTES}/user-status`;

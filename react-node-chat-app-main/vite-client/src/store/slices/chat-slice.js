@@ -4,6 +4,14 @@ export const createChatSlice = (set, get) => ({
     selectedChatMessages: [],
     directMessagesContacts: [],
     channels: [],
+    unreadCounts: (() => {
+        try {
+            const stored = localStorage.getItem('unreadCounts');
+            return stored ? JSON.parse(stored) : {};
+        } catch {
+            return {};
+        }
+    })(),
     isUploading: false,
     fileUploadProgress: 0,
     isDownloading: false,
@@ -115,6 +123,46 @@ export const createChatSlice = (set, get) => ({
             channels.splice(index, 1);
             channels.unshift(data);
             set({ channels: [...channels] });
+        }
+    },
+    incrementUnreadCount: (chatId, chatType) => {
+        const key = `${chatType}_${chatId}`;
+        set((state) => {
+            const newCounts = {
+                ...state.unreadCounts,
+                [key]: (state.unreadCounts[key] || 0) + 1,
+            };
+            localStorage.setItem('unreadCounts', JSON.stringify(newCounts));
+            return { unreadCounts: newCounts };
+        });
+    },
+    resetUnreadCount: (chatId, chatType) => {
+        const key = `${chatType}_${chatId}`;
+        set((state) => {
+            const newCounts = {
+                ...state.unreadCounts,
+                [key]: 0,
+            };
+            localStorage.setItem('unreadCounts', JSON.stringify(newCounts));
+            return { unreadCounts: newCounts };
+        });
+    },
+    markAsRead: async (chatId, chatType) => {
+        const { resetUnreadCount } = get();
+        try {
+            const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/messages/mark-as-read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ chatId, chatType }),
+            });
+            if (response.ok) {
+                resetUnreadCount(chatId, chatType);
+            }
+        } catch (error) {
+            console.error('Error marking as read:', error);
         }
     },
 });
